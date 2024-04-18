@@ -5,19 +5,47 @@ import Form from "./Form";
 function MyApp() {
   const [characters, setCharacters] = useState([]);
 
-  function removeOneCharacter(index) {
-    const updated = characters.filter((character, i) => {
-      return i !== index;
+  function removeOneCharacter(id, index) {
+    fetch(`http://localhost:8000/users/${id}`, {
+      method: 'DELETE'
+    })
+    .then((response) => {
+      if (response.status === 204) {
+        // Successful delete
+        // Remove the deleted user from the state using the index
+        const updatedCharacters = [...characters];
+        updatedCharacters.splice(index, 1);
+        setCharacters(updatedCharacters);
+      } else if (response.status === 404) {
+        // User not found
+        console.log("User not found");
+      } else {
+        // Handle other status codes if needed
+        console.log("Error deleting user");
+      }
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+      // Handle error
     });
-    setCharacters(updated);
   }
 
   function updateList(person) { 
     postUser(person)
-      .then(() => setCharacters([...characters, person]))
-      .catch((error) => {
-        console.log(error);
-      })
+    .then((response) => {
+      if (response.status === 201) {
+        return response.json(); 
+      } else {
+        throw new Error("User not Added - Status: " + response.status);
+      }
+    })
+    .then((addedUser) => {
+      setCharacters([...characters, addedUser]);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      // Handle error, show error message to the user, etc.
+    });
 }
 
   function fetchUsers() {

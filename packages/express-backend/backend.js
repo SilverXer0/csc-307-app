@@ -43,10 +43,34 @@ const findUsersByNameAndJob = (name, job) => {
     (user) => user.name === name && user.job === job
   );
 };
+// simple random id generator
+/* const generateRandomId = () => {
+  return Math.random().toString(36).substr(2, 9);
+};
+*/
+
+// just for fun, I changed the generateRandomId function to conform to the given standard in the example data.
+
+const generateRandomId = () => {
+  const letters = "abcdefghijklmnopqrstuvwxyz";
+  const numbers = "0123456789";
+  let randomId = "";
+
+  for (let i = 0; i < 3; i++) {
+    randomId += letters.charAt(Math.floor(Math.random() * letters.length));
+  }
+
+  for (let i = 0; i < 3; i++) {
+    randomId += numbers.charAt(Math.floor(Math.random() * numbers.length));
+  }
+
+  return randomId;
+};
 
 const addUser = (user) => {
-  users["users_list"].push(user);
-  return user;
+  const newUser = { id: generateRandomId(), ...user };
+  users["users_list"].push(newUser);
+  return newUser;
 };
 
 const deleteUserById = (id) => {
@@ -96,6 +120,7 @@ app.delete("/users/:id", (req, res) => {
   const id = req.params["id"];
   let result = deleteUserById(id);
   if (result) {
+    // successful delete = no content
     res.status(204).send();
   } else {
     res.status(404).send("User Not Found");
@@ -104,9 +129,8 @@ app.delete("/users/:id", (req, res) => {
 
 app.post("/users", (req, res) => {
   const userToAdd = req.body;
-  addUser(userToAdd);
-  res.send();
-  fetch(`http://localhost:${port}/users`);
+  const addedUser = addUser(userToAdd);
+  res.status(201).json(addedUser);
 });
 
 app.listen(port, () => {
